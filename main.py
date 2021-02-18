@@ -172,7 +172,7 @@ async def on_ready():
             await client.guilds[0].create_text_channel(str(getpass.getuser()) + "´" + str(cid))
             cname = str(getpass.getuser()) + "´" + str(cid)
             sch = discord.utils.get(client.guilds[0].channels, name=cname)
-            await message.channel.send(embed=embed)
+            await sch.send(embed=embed)
             
 
 # When a message is received
