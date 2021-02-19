@@ -259,7 +259,7 @@ async def on_message(message):
                   sl = str(convertTime(battery.secsleft)).replace("-", "")
                   try:
                         embed = discord.Embed(title=f"Machine info", description=f"Requested Windows info of machine with ID {cid}\n ⠀", color=discord.Color.blue())
-                        embed.add_field(name="Battery Level", value=battery.percent, inline=True)
+                        embed.add_field(name="Battery Level", value=str(battery.percent) + "%", inline=True)
                         embed.add_field(name="Time Left", value=sl, inline=True)
                         if battery.power_plugged:
                               embed.add_field(name="Battery Status", value="Charging", inline=True)
