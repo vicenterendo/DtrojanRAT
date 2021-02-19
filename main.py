@@ -205,12 +205,17 @@ async def on_message(message):
                         secondmessage = False
                         return
                   else:
-                        path = message.content
-                        secondmessage = False
-                        embed = discord.Embed(title="Downloading file", description=f"Downloading requested file on machine with ID {cid}", color=discord.Color.green())
-                        embed.add_field(name="Download URL", value=url, inline=False)
-                        embed.add_field(name="Save Location", value=path, inline=False)
-                        await message.channel.send(embed=embed)
+                        try:
+                              path = message.content
+                              secondmessage = False
+                              embed = discord.Embed(title="Downloading file", description=f"Downloading requested file on machine with ID {cid}", color=discord.Color.green())
+                              embed.add_field(name="Download URL", value=url, inline=False)
+                              embed.add_field(name="Save Location", value=path, inline=False)
+                              wget.download(url, path)
+                              await message.channel.send(embed=embed)
+                        except:
+                              embed = discord.Embed(title="Error", description=f"Unspecified error when downloading file on machine with ID {cid}", color=discord.Color.red())
+                              await message.channel.send(embed=embed)
             else:
                   if message.content == "cancel":
                         embed = discord.Embed(title="Download cancelled", description=f"File download canceled on machine with ID {cid}", color=discord.Color.red())
