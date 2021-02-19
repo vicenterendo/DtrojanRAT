@@ -260,9 +260,9 @@ async def on_message(message):
                         await message.channel.send(embed=embed)
                   elif f"/info battery" in message.content[0:13]:
                         embed = None
-                        battery = psutil.sensors_battery()
-                        sl = str(convertTime(battery.secsleft)).replace("-", "")
                         try:
+                              battery = psutil.sensors_battery()
+                              sl = str(convertTime(battery.secsleft)).replace("-", "")
                               embed = discord.Embed(title=f"Machine info", description=f"Requested Windows info of machine with ID {cid}\n ⠀", color=discord.Color.blue())
                               embed.add_field(name="Battery Level", value=str(battery.percent) + "%", inline=True)
                               embed.add_field(name="Time Left", value=sl, inline=True)
